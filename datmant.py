@@ -27,7 +27,7 @@ import pandas as pd
 # Overall constants
 PUBLISHER = "AlphaControlLab"
 APP_TITLE = "DATM Annotation Tool"
-APP_VERSION = "1.00.0-beta"
+APP_VERSION = "1.00.1-beta"
 
 # Some configs
 BRUSH_DIAMETER_MIN = 40
