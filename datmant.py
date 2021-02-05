@@ -447,11 +447,12 @@ class DATMantGUI(QtWidgets.QMainWindow, datmant_ui.Ui_DATMantMainWindow):
                 self.log("Drawing defect marks on original image...")
                 self.current_image = QImage(img_path + ".jpg")
                 img_tk = generate_tk_defects_layer(self.txtImageDir.text(), self.txtShpDir.text(),
-                                                    img_name_no_ext, self.tk_colors)
+                                                    img_name_no_ext, self.tk_colors, log=self.log)
                 self.current_tk = img_tk
             except Exception as e:
                 self.actionLoad_marked_image.setChecked(False)
                 self.log("Could not find or load the shapefile data. Will load only the image.")
+                self.log("Additional details about this error: (" + str(e.__class__.__name__) + ") " + str(e))
                 self.current_image = QImage(img_path + ".jpg")
                 self.curent_tk = None
 
