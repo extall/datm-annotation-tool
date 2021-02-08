@@ -6,8 +6,9 @@ from PyQt5.QtGui import QColor
 
 SHAPETYPES = ['KPIKIPR', 'KVUUK', 'PAIK_J', 'POIKPR', 'SERV', 'VORK', 'PAIK', 'MUREN', 'AUK']
 
+
 # Produces tehnokeskuse defect mask as the helper layer
-def generate_tk_defects_layer(path, shpath, fname, colordefs, log=print):
+def generate_tk_defects_layer(path, shpath, fname, colordefs, warning, log=print):
 
     # The shape file is assumed to be one directory up than the orthophotos
     path = path.strip("\\")  # Remove trailing slash
@@ -31,7 +32,9 @@ def generate_tk_defects_layer(path, shpath, fname, colordefs, log=print):
     ymin = koord[3] + koord[5] * (h - 1)
     ymax = koord[3]
 
-    pnts, tyyp = getdefects(shpath, xmin, xmax, ymin, ymax, koord, log=log)
+    pnts, tyyp = getdefects(shpath, xmin, xmax, ymin, ymax, koord, warning, log=log)
+
+    has_warning = False
 
     for i in range(0, len(tyyp)):
 
@@ -50,6 +53,10 @@ def generate_tk_defects_layer(path, shpath, fname, colordefs, log=print):
                 cv2.circle(img, pnts[i][0], 50, rgb, 25)
         else:
             log("Cannot locate " + SHAPETYPES[tyyp[i]] + " in color definitions, skipping!")
+            has_warning = True
+
+    if has_warning:
+        warning.append("problem with color definitions")
 
     # Mask away pixels
     img[mask==0] = (0, 0, 0, 0)
@@ -57,13 +64,15 @@ def generate_tk_defects_layer(path, shpath, fname, colordefs, log=print):
     return img
 
 
-def getdefects(path, xmin, xmax, ymin, ymax, koord, log=print):
+def getdefects(path, xmin, xmax, ymin, ymax, koord, warning, log=print):
     deflist = ['defects_polygon', 'defects_line', 'defects_point']
 
     cnt = np.zeros((9,), dtype=int)
     points = []
     rike = []
     k = 0
+
+    # has_warning = False
 
     for j in range(3):
 
@@ -106,7 +115,12 @@ def getdefects(path, xmin, xmax, ymin, ymax, koord, log=print):
                     k += 1
 
         except Exception as e:
-            log("The defect file " + deflist[j] + " could not be found and will be skipped")
+            log("The defect list " + deflist[j] + " could not be found and will be skipped")
+            # has_warning = True
+
+    # Issue warning about missing definition lists # TODO: Not sure how important this is, will disable by default
+    # if has_warning:
+        #warning.append("some defect lists were missing from the database")
 
     return points, rike
 

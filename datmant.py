@@ -27,7 +27,7 @@ import pandas as pd
 # Overall constants
 PUBLISHER = "AlphaControlLab"
 APP_TITLE = "DATM Annotation Tool"
-APP_VERSION = "1.00.1-beta"
+APP_VERSION = "1.00.2-beta"
 
 # Some configs
 BRUSH_DIAMETER_MIN = 40
@@ -346,9 +346,9 @@ class DATMantGUI(QtWidgets.QMainWindow, datmant_ui.Ui_DATMantMainWindow):
                                    + self.ANNOTATION_MODES_BUTTON_COLORS[self.annotation_mode] + "}")
 
     # Helper for QMessageBox
-    def show_info_box(self, title, text):
+    def show_info_box(self, title, text, box_icon=QMessageBox.Information):
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Information)
+        msg.setIcon(box_icon)
         msg.setText(text)
         msg.setWindowTitle(title)
         msg.setModal(True)
@@ -446,10 +446,22 @@ class DATMantGUI(QtWidgets.QMainWindow, datmant_ui.Ui_DATMantMainWindow):
             try:
                 self.log("Drawing defect marks on original image...")
                 self.current_image = QImage(img_path + ".jpg")
+                warning = []
                 img_tk = generate_tk_defects_layer(self.txtImageDir.text(), self.txtShpDir.text(),
-                                                    img_name_no_ext, self.tk_colors, log=self.log)
+                                                    img_name_no_ext, self.tk_colors, warning, log=self.log)
                 self.current_tk = img_tk
+
+                # Check if there were warnings
+                if warning:
+                    self.show_info_box("Issues drawing the TK layer",
+                                       "There was some issue while drawing the TK layer: " + "; ".join(warning) + " " +
+                                       "Please check the log for details.",
+                                       QMessageBox.Warning)
+
             except Exception as e:
+                self.show_info_box("Error drawing the TK layer",
+                                   "There was some issue while drawing the TK layer. Please check the log for details.",
+                                   QMessageBox.Warning)
                 self.actionLoad_marked_image.setChecked(False)
                 self.log("Could not find or load the shapefile data. Will load only the image.")
                 self.log("Additional details about this error: (" + str(e.__class__.__name__) + ") " + str(e))
